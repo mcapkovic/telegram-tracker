@@ -19,3 +19,6 @@ chatgpt.py
 
 # config
 config/config.ini
+
+# mac os
+.DS_Store
