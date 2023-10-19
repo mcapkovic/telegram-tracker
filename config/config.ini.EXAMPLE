@@ -2,3 +2,6 @@
 api_id = api_id
 api_hash = api_hash
 phone = phone
+
+system_content = system content
+user_content = user question
