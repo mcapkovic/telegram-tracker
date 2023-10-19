@@ -61,7 +61,7 @@ json_files = glob.glob(
     recursive=True
 )
 
-dataset = []
+example_messages = {}
 
 # Save dataset
 msgs_file_path = f'{main_path}/msgs_dataset.csv'
@@ -98,6 +98,8 @@ for f in json_files:
         'channel_name': username
     }
 
+    user_messages = []
+
     for idx, item in enumerate(messages):
         '''
 
@@ -110,8 +112,7 @@ for f in json_files:
                 message = message.replace('\n', 'NewLine')
                 message = re.sub('\W+',' ',message).strip()
                 message = message.replace('NewLine', '\n')
-
-                dataset.append(
+                user_messages.append(
                     {
                         'messages': [ 
                             { 
@@ -133,32 +134,35 @@ for f in json_files:
         # Update pbar
         pbar.update(1)
 
+    # store messages
+    example_messages[username] = user_messages
+
     # Close pbar connection
     pbar.close()
 
     print('-- END --')
     print('')
 
+# calculate tokens and save data
+for username, examples in example_messages.items():
+    print(f'Number of messages: {len(examples)}')
 
-file_path = f'{main_path}/{username}/dataset.json'
-print(file_path)
-print(len(dataset))
+    print("gpt-3.5-turbo")
+    count = 0
+    for example in examples:
+        count += num_tokens_from_messages(example['messages'], "gpt-3.5-turbo")
 
-json_str = json.dumps(
-    dataset,
-    indent=2,
-    ensure_ascii=False,
-	separators=(',',':')
-)
-writer = open(file_path, mode='w', encoding='utf-8')
-writer.write(json_str)
-writer.close()
+    # example token count from the function defined above
+    print(f"{count} prompt tokens counted by num_tokens_from_messages().")
 
-print("gpt-3.5-turbo")
-count = 0
-for example in dataset:
-    count += num_tokens_from_messages(example['messages'], "gpt-3.5-turbo")
-
-# example token count from the function defined above
-print(f"{count} prompt tokens counted by num_tokens_from_messages().")
-
+    # save data to json
+    file_path = f'{main_path}/{username}/{username}_fine_tunning.json'
+    json_str = json.dumps(
+        examples,
+        indent=2,
+        ensure_ascii=False,
+        separators=(',',':')
+    )
+    writer = open(file_path, mode='w', encoding='utf-8')
+    writer.write(json_str)
+    writer.close()
